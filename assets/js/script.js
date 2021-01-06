@@ -108,7 +108,72 @@ $(".list-group").on("blur", "input[type='text']", function () {
   // replace input with span element
   $(this).replaceWith(taskSpan);
 });
+//connectwith will make the draggable element to attach to the same class name elements
+$(".card .list-group").sortable({
+  connectWith: $(".card .list-group"),
+  scroll: false,
+  tolerance: "pointer",
+  helper: "clone",
+  activate: function (event, ui) {
+    console.log(ui);
+  },
+  deactivate: function (event, ui) {
+    console.log(ui);
+  },
+  over: function (event) {
+    console.log(event);
+  },
+  out: function (event) {
+    console.log(event);
+  },
+  update: function () {
+    console.log($(this));
+    var tempArr = [];
+    $(this)
+      .children()
+      .each(function () {
+        tempArr.push({
+          text: $(this).find("p").text().trim(),
+          date: $(this).find("span").text().trim(),
+        });
+      });
+    // trim down list's ID to match object property
+    var arrName = $(this)
+      .attr("id")
+      .replace("list-" + "");
+    console.log(arrName);
+    // update array on tasks object and save
+    tasks[arrName] = tempArr;
+    saveTasks();
+  },
+  stop: function (event) {
+    $(this).removeClass("dropover");
+  },
+});
 
+//drop to trash
+$("#trash").droppable({
+  accept: ".card .list-group-item",
+  tolerance: "touch",
+  drop: function (event, ui) {
+    ui.draggable.remove();
+    console.log("drop");
+  },
+  over: function (event, ui) {
+    console.log("over");
+  },
+  out: function (event, ui) {
+    console.log("out");
+  },
+});
+// remove all tasks
+$("#remove-tasks").on("click", function () {
+  for (var key in tasks) {
+    tasks[key].length = 0;
+    $("#list-" + key).empty();
+  }
+  saveTasks();
+});
 // modal was triggered
 $("#task-form-modal").on("show.bs.modal", function () {
   // clear values
@@ -146,13 +211,5 @@ $("#task-form-modal .btn-primary").click(function () {
   }
 });
 
-// remove all tasks
-$("#remove-tasks").on("click", function () {
-  for (var key in tasks) {
-    tasks[key].length = 0;
-    $("#list-" + key).empty();
-  }
-  saveTasks();
-});
 // load tasks for the first time
 loadTasks();
